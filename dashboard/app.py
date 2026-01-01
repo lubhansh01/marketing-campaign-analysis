@@ -1,9 +1,14 @@
-import streamlit as st
+import os
 import pandas as pd
+import streamlit as st
 
 st.set_page_config(page_title="Marketing Campaign Dashboard", layout="wide")
 
-df = pd.read_csv("../final_marketing_data.csv")
+# Absolute path fix (PRODUCTION SAFE)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_PATH = os.path.join(BASE_DIR, "..", "final_marketing_data.csv")
+
+df = pd.read_csv(DATA_PATH)
 
 st.title("📊 Marketing Campaign Analysis")
 
