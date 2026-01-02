@@ -4,13 +4,12 @@ import streamlit as st
 
 st.set_page_config(page_title="Marketing Campaign Dashboard", layout="wide")
 
-# Absolute path fix (PRODUCTION SAFE)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_PATH = os.path.join(BASE_DIR, "..", "final_marketing_data.csv")
+DATA_PATH = os.path.join(BASE_DIR, "final_marketing_data.csv")
 
 df = pd.read_csv(DATA_PATH)
 
-st.title("📊 Marketing Campaign Analysis")
+st.success("✅ Data loaded successfully")
 
 # KPI Metrics
 col1, col2, col3 = st.columns(3)
