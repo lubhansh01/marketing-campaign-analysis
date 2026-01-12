@@ -13,17 +13,17 @@ st.set_page_config(
 )
 
 # --------------------------------------------------
-# Helper Functions
+# Helper functions
 # --------------------------------------------------
-def safe_mean(series):
-    if series.dropna().empty:
+def safe_int(value):
+    if pd.isna(value):
         return "N/A"
-    return round(series.mean(), 2)
+    return int(value)
 
-def safe_percent(series):
-    if series.dropna().empty:
+def safe_percent(value):
+    if pd.isna(value):
         return "N/A"
-    return f"{round(series.mean() * 100, 2)}%"
+    return f"{round(value * 100, 2)}%"
 
 # --------------------------------------------------
 # Load Data (CSV inside dashboard/)
@@ -32,50 +32,55 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(BASE_DIR, "final_marketing_data.csv")
 
 if not os.path.exists(DATA_PATH):
-    st.error("❌ final_marketing_data.csv not found in dashboard folder")
+    st.error("❌ final_marketing_data.csv not found inside dashboard folder")
     st.stop()
 
 df = pd.read_csv(DATA_PATH)
 
 # --------------------------------------------------
-# Title
+# Title & Description
 # --------------------------------------------------
 st.title("📊 Marketing Campaign Analysis Dashboard")
 st.markdown(
-    "Interactive dashboard with **rule-based segmentation** and **dynamic visualizations**."
+    """
+    Interactive dashboard with **rule-based customer segmentation**
+    and **dynamic data visualizations**.
+    """
 )
 
 # --------------------------------------------------
-# Sidebar Filters
+# Filters (Segment + Chart Type)
 # --------------------------------------------------
-st.sidebar.header("🎯 Filters")
+col_filter1, col_filter2 = st.columns(2)
 
-segment = st.sidebar.selectbox(
-    "Select Customer Segment",
-    [
-        "All",
-        "High Spender",
-        "High Income",
-        "Family Customer",
-        "Young Customer",
-        "Campaign Responder",
-        "High Web Engagement"
-    ]
-)
+with col_filter1:
+    segment = st.selectbox(
+        "Select Customer Segment",
+        [
+            "All",
+            "High Spender",
+            "High Income",
+            "Family Customer",
+            "Young Customer",
+            "Campaign Responder",
+            "High Web Engagement"
+        ]
+    )
 
-chart_type = st.sidebar.selectbox(
-    "Select Chart Type",
-    [
-        "Bar Chart",
-        "Pie Chart",
-        "Donut Chart",
-        "Box Plot",
-        "Histogram"
-    ]
-)
+with col_filter2:
+    chart_type = st.selectbox(
+        "Select Chart Type",
+        [
+            "Bar Chart",
+            "Pie Chart",
+            "Donut Chart",
+            "Box Plot",
+            "Histogram"
+        ]
+    )
 
 # --------------------------------------------------
-# Segment Filtering
+# Filter Data Based on Segment
 # --------------------------------------------------
 filtered_df = df.copy()
 
@@ -98,14 +103,14 @@ elif segment == "High Web Engagement":
 st.subheader("📌 Key Performance Indicators")
 
 if filtered_df.empty:
-    st.warning("⚠️ No data available for selected segment")
+    st.warning("⚠️ No data available for the selected segment.")
 else:
     col1, col2, col3, col4 = st.columns(4)
 
-    col1.metric("Avg Income", f"₹{safe_mean(filtered_df['Income'])}")
-    col2.metric("Avg Total Spend", f"₹{safe_mean(filtered_df['Total_Spend'])}")
-    col3.metric("Avg Web Visits", safe_mean(filtered_df["NumWebVisitsMonth"]))
-    col4.metric("Campaign Response Rate", safe_percent(filtered_df["Response"]))
+    col1.metric("Avg Income", f"₹{safe_int(filtered_df['Income'].mean())}")
+    col2.metric("Avg Total Spend", f"₹{safe_int(filtered_df['Total_Spend'].mean())}")
+    col3.metric("Avg Web Visits / Month", safe_int(filtered_df['NumWebVisitsMonth'].mean()))
+    col4.metric("Campaign Response Rate", safe_percent(filtered_df['Response'].mean()))
 
 # --------------------------------------------------
 # Visualization Section
@@ -114,7 +119,7 @@ st.divider()
 st.subheader("📈 Data Visualization")
 
 if filtered_df.empty:
-    st.info("No chart available for this segment.")
+    st.info("No data available for visualization.")
 else:
     fig, ax = plt.subplots(figsize=(7, 5))
 
@@ -149,7 +154,12 @@ else:
             filtered_df["NumCatalogPurchases"].sum()
         ]
         labels = ["Web", "Store", "Catalog"]
-        ax.pie(values, labels=labels, autopct="%1.1f%%", wedgeprops=dict(width=0.4))
+        ax.pie(
+            values,
+            labels=labels,
+            autopct="%1.1f%%",
+            wedgeprops=dict(width=0.4)
+        )
         ax.set_title("Purchase Channel Distribution")
 
     # BOX PLOT
@@ -173,15 +183,34 @@ else:
     st.pyplot(fig)
 
 # --------------------------------------------------
-# Data Table
+# Segment Summary Table
 # --------------------------------------------------
 st.divider()
-st.subheader("🧾 Customer Data Table")
+st.subheader("📊 Segment Summary (Averages)")
+
+if not filtered_df.empty:
+    summary_df = filtered_df.agg({
+        "Income": "mean",
+        "Total_Spend": "mean",
+        "Total_Purchases": "mean",
+        "NumWebVisitsMonth": "mean",
+        "Response": "mean"
+    }).round(2)
+
+    st.dataframe(summary_df.to_frame("Average Value"))
+else:
+    st.info("No summary available for this segment.")
+
+# --------------------------------------------------
+# Customer Data Preview
+# --------------------------------------------------
+st.divider()
+st.subheader("🧾 Customer Records (Preview)")
 
 if not filtered_df.empty:
     st.dataframe(filtered_df.head(50))
 else:
-    st.info("No records to display.")
+    st.info("No customer records to display.")
 
 # --------------------------------------------------
 # Footer
