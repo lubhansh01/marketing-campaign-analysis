@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import streamlit as st
+import plotly.express as px
 
 # --------------------------------------------------
 # Page Configuration
@@ -114,6 +115,9 @@ else:
 # --------------------------------------------------
 # Visualization Section
 # --------------------------------------------------
+# --------------------------------------------------
+# Visualization Section
+# --------------------------------------------------
 st.divider()
 st.subheader("📈 Visualization")
 
@@ -130,7 +134,7 @@ if not filtered_df.empty:
         })
         st.bar_chart(chart_df.set_index("Metric"))
 
-    # PIE CHART
+    # PIE CHART (REAL)
     elif chart_type == "Pie Chart":
         pie_df = pd.DataFrame({
             "Category": ["Wine", "Meat", "Gold"],
@@ -140,10 +144,16 @@ if not filtered_df.empty:
                 filtered_df["MntGoldProds"].sum()
             ]
         })
-        st.write("Spending Distribution")
-        st.bar_chart(pie_df.set_index("Category"))
 
-    # DONUT CHART (simulated)
+        fig = px.pie(
+            pie_df,
+            names="Category",
+            values="Spend",
+            title="Spending Distribution"
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+    # DONUT CHART (REAL)
     elif chart_type == "Donut Chart":
         donut_df = pd.DataFrame({
             "Channel": ["Web", "Store", "Catalog"],
@@ -153,8 +163,24 @@ if not filtered_df.empty:
                 filtered_df["NumCatalogPurchases"].sum()
             ]
         })
-        st.write("Channel Distribution")
-        st.bar_chart(donut_df.set_index("Channel"))
+
+        fig = px.pie(
+            donut_df,
+            names="Channel",
+            values="Purchases",
+            hole=0.4,
+            title="Purchase Channel Distribution"
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+    # BOX PLOT (SIMULATED DISTRIBUTION)
+    elif chart_type == "Box Plot":
+        st.bar_chart(filtered_df["Total_Spend"].value_counts().head(20))
+
+    # HISTOGRAM
+    elif chart_type == "Histogram":
+        st.bar_chart(filtered_df["Income"].value_counts().head(20))
+
 
     # BOX PLOT (simulated via distribution)
     elif chart_type == "Box Plot":
