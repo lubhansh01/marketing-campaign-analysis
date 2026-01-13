@@ -29,8 +29,12 @@ def safe_percent(series):
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(BASE_DIR, "final_marketing_data.csv")
 
-if not os.path.exists(DATA_PATH):
-    st.error("❌ final_marketing_data.csv not found in dashboard folder")
+try:
+    df = pd.read_csv(DATA_PATH)
+except Exception as e:
+    st.error("❌ Unable to load final_marketing_data.csv")
+    st.write("Expected path:", DATA_PATH)
+    st.write("Error:", e)
     st.stop()
 
 df = pd.read_csv(DATA_PATH)
